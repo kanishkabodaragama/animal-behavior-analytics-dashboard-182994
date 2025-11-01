@@ -1,82 +1,70 @@
-# Lightweight React Template for KAVIA
+# Animal Behavior Analytics Dashboard - Frontend
 
-This project provides a minimal React template with a clean, modern UI and minimal dependencies.
+A React frontend implementing authentication, protected routes, and a classic analytics dashboard with videos and reports pages.
 
 ## Features
 
-- **Lightweight**: No heavy UI frameworks - uses only vanilla CSS and React
-- **Modern UI**: Clean, responsive design with KAVIA brand styling
-- **Fast**: Minimal dependencies for quick loading times
-- **Simple**: Easy to understand and modify
+- Routing with protected routes (react-router-dom v6)
+- Auth pages: Login and Register
+- Main layout with Sidebar (left), Topbar (fixed), and Content
+- Pages: Dashboard, Videos (upload/list), Analytics (reports/export)
+- Global contexts: AuthContext (login/register/logout), UIContext (theme + sidebar)
+- API layer with mock mode toggle via environment variable
+- Clean, professional "Classic" styling with custom theme
 
 ## Getting Started
 
-In the project directory, you can run:
+1. Install dependencies
+   - npm install
 
-### `npm start`
+2. Configure env
+   - Copy .env.example to .env and adjust values:
+     - REACT_APP_API_BASE_URL (backend base URL)
+     - REACT_APP_USE_MOCK (true/false)
 
-Runs the app in development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+3. Run
+   - npm start
+   - Open http://localhost:3000
 
-### `npm test`
+## Mock API Mode
 
-Launches the test runner in interactive watch mode.
+- When REACT_APP_USE_MOCK=true, the app uses in-browser mock data for:
+  - Auth (login/register returns a demo user)
+  - Dashboard summary and activity
+  - Videos list and upload (simulated)
+  - Analytics reports
+- Set REACT_APP_USE_MOCK=false to connect to a real backend at REACT_APP_API_BASE_URL.
 
-### `npm run build`
+## Project Structure (key parts)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- src/contexts
+  - AuthContext.js: user state, login/register/logout
+  - UIContext.js: theme + sidebar state
+- src/layout
+  - Sidebar.js, Topbar.js, MainLayout.js
+- src/pages
+  - auth/Login.js, auth/Register.js
+  - Dashboard.js, Videos.js, Analytics.js
+- src/services
+  - api.js: API wrapper, reads env, switches to mock
+  - mock.js: mock data and responses
+- src/utils
+  - env.js, storage.js, random.js
+- src/App.js: Router and route definitions
+- src/App.css: Theme + layout + components
 
-## Customization
+## Theming
 
-### Colors
+- Toggle theme from the topbar. Theme persists across sessions.
+- Colors and layout are defined in src/App.css with CSS variables.
 
-The main brand colors are defined as CSS variables in `src/App.css`:
+## Notes
 
-```css
-:root {
-  --kavia-orange: #E87A41;
-  --kavia-dark: #1A1A1A;
-  --text-color: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.7);
-  --border-color: rgba(255, 255, 255, 0.1);
-}
-```
+- For production builds, ensure REACT_APP_USE_MOCK=false and REACT_APP_API_BASE_URL points to your API.
+- Authentication tokens are stored in localStorage (token + user).
 
-### Components
+## Scripts
 
-This template uses pure HTML/CSS components instead of a UI framework. You can find component styles in `src/App.css`. 
-
-Common components include:
-- Buttons (`.btn`, `.btn-large`)
-- Container (`.container`)
-- Navigation (`.navbar`)
-- Typography (`.title`, `.subtitle`, `.description`)
-
-## Learn More
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- npm start: Development server
+- npm run build: Production build
+- npm test: CRA test runner

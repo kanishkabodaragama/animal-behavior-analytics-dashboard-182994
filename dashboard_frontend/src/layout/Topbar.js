@@ -1,0 +1,30 @@
+import React from 'react';
+import { format } from 'date-fns';
+import { useAuth } from '../contexts/AuthContext';
+import { useUI } from '../contexts/UIContext';
+
+export default function Topbar() {
+  const { user, logout } = useAuth();
+  const { toggleTheme, toggleSidebar } = useUI();
+  const now = new Date();
+
+  return (
+    <header className="topbar">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <button className="btn ghost" onClick={toggleSidebar} aria-label="Toggle sidebar">☰</button>
+        <div className="pill">
+          <span>🐾 Animal Type</span>
+          <strong>All</strong>
+        </div>
+        <div className="pill">
+          <span>🕒 {format(now, 'PPpp')}</span>
+        </div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span className="muted">Signed in as {user?.name}</span>
+        <button className="btn ghost" onClick={toggleTheme}>Toggle Theme</button>
+        <button className="btn" onClick={logout}>Logout</button>
+      </div>
+    </header>
+  );
+}
