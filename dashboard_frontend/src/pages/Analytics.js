@@ -1,76 +1,67 @@
-import React, { useEffect, useState } from 'react';
-import { api } from '../services/api';
+import React, { useMemo, useState } from 'react';
+import Table from '../components/common/Table';
+import rowsData from '../mock/data/analytics.json';
+
+// Column labels must appear EXACTLY in this order:
+// ["Frame Time (s)", "Timestamp", "Animal ID", "Label", "Tile", "Confidence", "Pose", "Behavior"]
+
+const COLUMNS = [
+  { key: 'frameTime', label: 'Frame Time (s)', render: (r) => (r.frameTime ?? '—') },
+  { key: 'timestamp', label: 'Timestamp', render: (r) => (r.timestamp ?? '—') },
+  { key: 'animalId', label: 'Animal ID', render: (r) => (r.animalId ?? '—') },
+  { key: 'label', label: 'Label', render: (r) => (r.label ?? '—') },
+  { key: 'tile', label: 'Tile', render: (r) => (r.tile ?? '—') },
+  { key: 'confidence', label: 'Confidence', render: (r) => {
+      const v = r.confidence;
+      // Print with up to 2 decimals when number, else placeholder
+      return typeof v === 'number' ? v.toFixed(2) : (v ?? '—');
+    }
+  },
+  { key: 'pose', label: 'Pose', render: (r) => (r.pose ?? '—') },
+  { key: 'behavior', label: 'Behavior', render: (r) => (r.behavior ?? '—') },
+];
 
 // PUBLIC_INTERFACE
 export default function Analytics() {
-  /** Shows available analytics reports and mock export actions. */
-  const [reports, setReports] = useState([]);
-  const [err, setErr] = useState('');
-  const [loading, setLoading] = useState(true);
+  /**
+   * Displays analytics detections in a table using the specified headers and mapping.
+   * Uses local mock data to avoid runtime errors and ensure all fields are present.
+   */
+  const [loading, setLoading] = useState(false);
+  const [dataset, setDataset] = useState(rowsData || []);
 
-  const load = async () => {
+  // Allow for potential future client-side transforms without re-computation on rerenders
+  const data = useMemo(() => dataset, [dataset]);
+
+  const refresh = () => {
+    // For mock data, a "refresh" just re-reads the data source;
+    // a real implementation would refetch from api.analytics.list()
     setLoading(true);
-    setErr('');
     try {
-      const data = await api.analytics.list();
-      setReports(data);
-    } catch (e) {
-      setErr(e.message || 'Failed to load analytics');
+      // Simulate refresh without changing content
+      setDataset(Array.isArray(rowsData) ? [...rowsData] : []);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { load(); }, []);
-
-  const exportReport = (rep) => {
-    // In mock mode, just simulate download
-    const blob = new Blob([JSON.stringify(rep, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${rep.title.replace(/\s+/g, '_')}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   return (
     <div>
       <h2 style={{ marginTop: 0 }}>Analytics</h2>
-      {err && <div className="pill error" style={{ marginBottom: 12 }}>{err}</div>}
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+        <button className="btn ghost" onClick={refresh} disabled={loading}>
+          {loading ? 'Refreshing...' : 'Refresh'}
+        </button>
+      </div>
+
       <div className="card">
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Report</th>
-              <th>Animal</th>
-              <th>Behaviors</th>
-              <th>Created</th>
-              <th>Downloads</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan={6} className="muted">Loading...</td></tr>
-            ) : reports.length === 0 ? (
-              <tr><td colSpan={6} className="muted">No analytics available.</td></tr>
-            ) : (
-              reports.map(rep => (
-                <tr key={rep.id}>
-                  <td>{rep.title}</td>
-                  <td>{rep.animal}</td>
-                  <td>{rep.behaviors.join(', ')}</td>
-                  <td>{new Date(rep.createdAt).toLocaleString()}</td>
-                  <td>{rep.downloads}</td>
-                  <td>
-                    <button className="btn" onClick={() => exportReport(rep)}>Export</button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        <Table
+          columns={COLUMNS}
+          data={data}
+          loading={loading}
+          emptyMessage="No analytics records."
+        />
       </div>
     </div>
   );

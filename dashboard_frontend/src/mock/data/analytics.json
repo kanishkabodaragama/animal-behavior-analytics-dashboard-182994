@@ -1,0 +1,112 @@
+[
+  {
+    "id": "rec_01",
+    "frameTime": 0.033,
+    "timestamp": "2025-06-01T12:00:00.000Z",
+    "animalId": "A-001",
+    "label": "Animal",
+    "tile": "A1",
+    "confidence": 0.98,
+    "pose": "Standing",
+    "behavior": "Foraging"
+  },
+  {
+    "id": "rec_02",
+    "frameTime": 0.066,
+    "timestamp": "2025-06-01T12:00:00.033Z",
+    "animalId": "A-002",
+    "label": "Animal",
+    "tile": "B2",
+    "confidence": 0.87,
+    "pose": "Walking",
+    "behavior": "Grazing"
+  },
+  {
+    "id": "rec_03",
+    "frameTime": 0.099,
+    "timestamp": "2025-06-01T12:00:00.066Z",
+    "animalId": "A-003",
+    "label": "Animal",
+    "tile": "C3",
+    "confidence": 0.76,
+    "pose": "Running",
+    "behavior": "Hunting"
+  },
+  {
+    "id": "rec_04",
+    "frameTime": 0.132,
+    "timestamp": "2025-06-01T12:00:00.099Z",
+    "animalId": "A-004",
+    "label": "Animal",
+    "tile": "D4",
+    "confidence": 0.65,
+    "pose": "Laying",
+    "behavior": "Resting"
+  },
+  {
+    "id": "rec_05",
+    "frameTime": 0.165,
+    "timestamp": "2025-06-01T12:00:00.132Z",
+    "animalId": "A-005",
+    "label": "Animal",
+    "tile": "E5",
+    "confidence": 0.92,
+    "pose": "Standing",
+    "behavior": "Alert"
+  },
+  {
+    "id": "rec_06",
+    "frameTime": 0.198,
+    "timestamp": "2025-06-01T12:00:00.165Z",
+    "animalId": "A-006",
+    "label": "Animal",
+    "tile": "F6",
+    "confidence": 0.54,
+    "pose": "Sitting",
+    "behavior": "Grooming"
+  },
+  {
+    "id": "rec_07",
+    "frameTime": 0.231,
+    "timestamp": "2025-06-01T12:00:00.198Z",
+    "animalId": "A-007",
+    "label": "Animal",
+    "tile": "G7",
+    "confidence": 0.81,
+    "pose": "Walking",
+    "behavior": "Migration"
+  },
+  {
+    "id": "rec_08",
+    "frameTime": 0.264,
+    "timestamp": "2025-06-01T12:00:00.231Z",
+    "animalId": "A-008",
+    "label": "Animal",
+    "tile": "H8",
+    "confidence": 0.73,
+    "pose": "Standing",
+    "behavior": "Vigilance"
+  },
+  {
+    "id": "rec_09",
+    "frameTime": 0.297,
+    "timestamp": "2025-06-01T12:00:00.264Z",
+    "animalId": "A-009",
+    "label": "Animal",
+    "tile": "I9",
+    "confidence": 0.67,
+    "pose": "Running",
+    "behavior": "Chasing"
+  },
+  {
+    "id": "rec_10",
+    "frameTime": 0.330,
+    "timestamp": "2025-06-01T12:00:00.297Z",
+    "animalId": "A-010",
+    "label": "Animal",
+    "tile": "J10",
+    "confidence": 0.88,
+    "pose": "Standing",
+    "behavior": "Foraging"
+  }
+]
