@@ -1,0 +1,4 @@
+{
+    "command": "npm install",
+    "working_directory": "/home/kavia/workspace/code-generation/animal-behavior-analytics-dashboard-182994/dashboard_frontend"
+}
