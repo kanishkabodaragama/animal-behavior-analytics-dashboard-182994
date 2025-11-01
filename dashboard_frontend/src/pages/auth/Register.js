@@ -10,16 +10,32 @@ export default function Register() {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
+  const [info, setInfo] = useState('');
 
   const submit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setErr('');
+    setInfo('');
     try {
-      await register(form.name, form.email, form.password);
+      if (form.password.length < 6) {
+        throw new Error('Password must be at least 6 characters long.');
+      }
+      const result = await register(form.name, form.email, form.password);
+
+      // If Supabase email confirmation is enabled, we get a signal back
+      if (result && result.needsConfirmation) {
+        setInfo('Success! Please check your email to confirm your account.');
+        // Optionally redirect to Login after a short delay
+        setTimeout(() => navigate('/login', { replace: true }), 1500);
+        return;
+      }
+
+      // Otherwise we are logged in (mock/API or Supabase with direct session)
       navigate('/', { replace: true });
     } catch (e) {
-      setErr(e.message || 'Registration failed');
+      const message = e?.message || 'Registration failed';
+      setErr(message);
     } finally {
       setLoading(false);
     }
@@ -30,6 +46,7 @@ export default function Register() {
       <div className="auth-title">Create your account</div>
       <div className="auth-subtitle">Join to start analyzing animal behaviors.</div>
       {err && <div className="pill error" style={{ marginBottom: 12 }}>{err}</div>}
+      {info && <div className="pill success" style={{ marginBottom: 12 }}>{info}</div>}
       <form onSubmit={submit}>
         <div className="form-row">
           <div className="col-12">
@@ -42,7 +59,7 @@ export default function Register() {
           </div>
           <div className="col-12">
             <label>Password</label>
-            <input className="input" type="password" required value={form.password} onChange={(e)=>setForm({...form, password:e.target.value})}/>
+            <input className="input" type="password" required minLength={6} value={form.password} onChange={(e)=>setForm({...form, password:e.target.value})}/>
           </div>
         </div>
         <div className="form-actions" style={{ marginTop: 16 }}>

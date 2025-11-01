@@ -8,10 +8,11 @@ Add these to `animal-behavior-analytics-dashboard-182994/dashboard_frontend/.env
 
 - REACT_APP_API_BASE_URL: Base URL for your REST API (used when not in mock mode)
 - REACT_APP_USE_MOCK: "true" or "false" for using mock API data
-- REACT_APP_SUPABASE_URL: Your Supabase project URL (from Settings -> API)
-- REACT_APP_SUPABASE_ANON_KEY: Supabase anonymous key
 - REACT_APP_AUTH_PROVIDER: Either "mock" or "supabase"
   - Defaults to "mock" if omitted
+- REACT_APP_SUPABASE_URL: Your Supabase project URL (from Settings -> API)
+- REACT_APP_SUPABASE_ANON_KEY: Supabase anonymous key
+- REACT_APP_SITE_URL: Public site URL used for email redirects (signup confirmation, password reset). Example: https://myapp.example.com
 
 Example:
 ```
@@ -19,9 +20,10 @@ REACT_APP_API_BASE_URL=http://localhost:4000
 REACT_APP_USE_MOCK=true
 
 # Supabase (optional)
+REACT_APP_AUTH_PROVIDER=supabase
 REACT_APP_SUPABASE_URL=https://your-project-id.supabase.co
 REACT_APP_SUPABASE_ANON_KEY=your-anon-key
-REACT_APP_AUTH_PROVIDER=supabase
+REACT_APP_SITE_URL=http://localhost:3000
 ```
 
 Notes:
@@ -45,19 +47,42 @@ Notes:
   - On successful Supabase login, uses `loginWithSession(user, token)` from `AuthContext` to set user/token
 
 - `src/contexts/AuthContext.js`:
+  - Provides complete auth state and actions
   - Adds `loginWithSession(user, token)` to complete login using an external provider
+  - Exposes `register(name, email, password)` with Supabase sign-up support
+  - Exposes `resetPassword(email)` with Supabase password reset support
+  - Subscribes to `supabase.auth.onAuthStateChange` and persists token/user
 
-## Signup Considerations
+## Signup and Email Confirmation
 
-If implementing Supabase signup flows with email confirmation, make sure to set `emailRedirectTo` with your site URL, which should be provided as an environment variable (e.g., `REACT_APP_SITE_URL`). Example:
+Signup uses `supabase.auth.signUp`. If your Supabase project requires email confirmation (recommended), the response will not include a session. The app will display a friendly message asking the user to check their email.
+
+We pass `emailRedirectTo` using `REACT_APP_SITE_URL` when provided:
 ```js
 await supabase.auth.signUp({
   email,
   password,
-  options: { emailRedirectTo: process.env.REACT_APP_SITE_URL }
+  options: {
+    emailRedirectTo: process.env.REACT_APP_SITE_URL, // optional
+    data: { name }
+  }
 });
 ```
-Update this documentation if signup is added.
+
+- If a session is returned (email confirmation disabled), the app logs the user in automatically.
+- If no session is returned, the app shows "Please check your email..." and redirects the user to the Login page.
+
+## Password Reset
+
+The Forgot Password page calls:
+```js
+await supabase.auth.resetPasswordForEmail(email, {
+  redirectTo: process.env.REACT_APP_SITE_URL // optional
+});
+```
+This sends a reset email to the user. The app shows a non-committal message: "If an account exists for this email, a reset link has been sent."
+
+Note: In mock mode, password reset is disabled by design.
 
 ## Security
 

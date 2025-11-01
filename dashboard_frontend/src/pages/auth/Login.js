@@ -76,6 +76,9 @@ export default function Login() {
         </div>
       </form>
       <div className="separator" />
+      <div className="muted" style={{ marginBottom: 8 }}>
+        Forgot your password? <Link to="/forgot-password">Reset it</Link>
+      </div>
       <div className="muted">No account? <Link to="/register">Create one</Link></div>
     </div>
   );

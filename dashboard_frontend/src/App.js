@@ -1,11 +1,12 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { UIProvider } from './contexts/UIContext';
 import MainLayout from './layout/MainLayout';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import ForgotPassword from './pages/auth/ForgotPassword';
 import Dashboard from './pages/Dashboard';
 import Videos from './pages/Videos';
 import Analytics from './pages/Analytics';
@@ -17,29 +18,28 @@ function ProtectedRoute({ children }) {
 
 // PUBLIC_INTERFACE
 function App() {
-  /** Root app wiring: providers + router + routes */
+  /** Root app wiring: providers + routes (Router is provided by index.js/tests) */
   return (
     <AuthProvider>
       <UIProvider>
-        <Router>
-          <Routes>
-            <Route path="/login" element={<AuthShell><Login /></AuthShell>} />
-            <Route path="/register" element={<AuthShell><Register /></AuthShell>} />
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <MainLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Dashboard />} />
-              <Route path="videos" element={<Videos />} />
-              <Route path="analytics" element={<Analytics />} />
-            </Route>
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Router>
+        <Routes>
+          <Route path="/login" element={<AuthShell><Login /></AuthShell>} />
+          <Route path="/register" element={<AuthShell><Register /></AuthShell>} />
+          <Route path="/forgot-password" element={<AuthShell><ForgotPassword /></AuthShell>} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <MainLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Dashboard />} />
+            <Route path="videos" element={<Videos />} />
+            <Route path="analytics" element={<Analytics />} />
+          </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </UIProvider>
     </AuthProvider>
   );
