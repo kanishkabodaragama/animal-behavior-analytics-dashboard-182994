@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+/* env helper not required for Supabase auto-detection */
+import { supabase } from '../../services/supabaseClient';
 
 // PUBLIC_INTERFACE
 export default function Login() {
   /** Sign-in page with email/password form. */
-  const { login } = useAuth();
+  const { login, loginWithSession } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
@@ -16,7 +18,35 @@ export default function Login() {
     setLoading(true);
     setErr('');
     try {
-      await login(form.email, form.password);
+      // Determine if we should use Supabase auth (auto-detect by client presence)
+      const useSupabase = !!supabase;
+
+      if (useSupabase) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: form.email,
+          password: form.password,
+        });
+
+        if (error) throw error;
+        if (!data?.session) throw new Error('Login failed: no session returned.');
+
+        const token = data.session.access_token;
+        const spUser = data.user;
+
+        // Normalize user for app usage
+        const normalizedUser = {
+          id: spUser?.id,
+          name: spUser?.user_metadata?.name || (spUser?.email ? spUser.email.split('@')[0] : 'User'),
+          email: spUser?.email || form.email,
+        };
+
+        // Store in context and local storage
+        loginWithSession(normalizedUser, token);
+      } else {
+        // Fallback to existing login (mock or API depending on REACT_APP_USE_MOCK)
+        await login(form.email, form.password);
+      }
+
       navigate('/', { replace: true });
     } catch (e) {
       setErr(e.message || 'Login failed');

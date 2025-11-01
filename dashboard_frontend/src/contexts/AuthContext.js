@@ -54,6 +54,22 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  // PUBLIC_INTERFACE
+  const loginWithSession = (sessionUser, token) => {
+    /**
+     * Completes login using externally authenticated session (e.g., Supabase).
+     * Persists token + user and updates context state.
+     */
+    if (!sessionUser || !token) {
+      throw new Error('Missing user or token for session login');
+    }
+    storage.set('token', token);
+    storage.set('user', sessionUser);
+    api.setToken(token);
+    setUser(sessionUser);
+    return sessionUser;
+  };
+
   const value = useMemo(() => ({
     user,
     isAuthenticated: !!user,
@@ -61,6 +77,7 @@ export function AuthProvider({ children }) {
     login,
     register,
     logout,
+    loginWithSession,
   }), [user, initializing]);
 
   return (
