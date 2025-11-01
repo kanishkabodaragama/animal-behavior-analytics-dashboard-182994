@@ -35,8 +35,11 @@ export function getAuthProvider() {
 export function isSupabaseConfigured() {
   /**
    * Returns true if both REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY are provided.
+   * Also accepts REACT_APP_SUPABASE_KEY as an alias for the anon key.
    */
   const url = getEnv('REACT_APP_SUPABASE_URL', '');
-  const key = getEnv('REACT_APP_SUPABASE_ANON_KEY', '');
+  const key =
+    getEnv('REACT_APP_SUPABASE_ANON_KEY', '') ||
+    getEnv('REACT_APP_SUPABASE_KEY', '');
   return Boolean(url && url.trim() && key && key.trim());
 }

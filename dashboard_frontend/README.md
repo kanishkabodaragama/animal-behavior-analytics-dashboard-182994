@@ -34,7 +34,10 @@ A React frontend implementing authentication, protected routes, and a classic an
    REACT_APP_USE_MOCK=true
    REACT_APP_AUTH_PROVIDER=supabase
    REACT_APP_SUPABASE_URL=https://your-project-id.supabase.co
+   # Preferred variable name:
    REACT_APP_SUPABASE_ANON_KEY=your-anon-key
+   # Alias accepted if your environment uses this name:
+   # REACT_APP_SUPABASE_KEY=your-anon-key
    REACT_APP_SITE_URL=http://localhost:3000
    ```
 
@@ -127,6 +130,27 @@ How the app decides:
 - Unit tests run with `REACT_APP_USE_MOCK=true` by default (see `src/setupTests.js`) to avoid real network calls.
 - Tests exercise protected routes and mock login flows. Supabase interactions are not part of the default unit test suite.
 - For manual verification of Supabase flows, configure the Supabase env vars and test sign-up/login/reset in a running dev server.
+
+## Troubleshooting Signup "Failed to fetch"
+
+If you see "Failed to fetch" when registering:
+- Verify environment variables:
+  - REACT_APP_SUPABASE_URL
+  - REACT_APP_SUPABASE_ANON_KEY (or the accepted alias REACT_APP_SUPABASE_KEY)
+  - REACT_APP_AUTH_PROVIDER=supabase
+  - REACT_APP_SITE_URL matches your frontend origin (e.g., http://localhost:3000)
+- Supabase dashboard (Auth → URL Configuration):
+  - Site URL: set to your frontend origin (http://localhost:3000 in dev)
+  - Allowed Redirect URLs: include your frontend origin (http://localhost:3000) and any deployed origins
+- Network/HTTPS/CSP:
+  - Ensure your browser can reach https://<project-id>.supabase.co
+  - Disable ad-blockers or privacy extensions for the site during testing
+  - Avoid mixed content (serve the frontend over HTTPS if the Supabase project URL is HTTPS)
+- Provider switching:
+  - The app will use Supabase for signup/reset when the client is configured.
+  - Login already auto-detects Supabase; for consistency set REACT_APP_AUTH_PROVIDER=supabase.
+
+An .env.example is provided in this folder for reference.
 
 ## Notes
 

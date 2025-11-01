@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { getAuthProvider, isSupabaseConfigured } from '../../utils/env';
 
 // PUBLIC_INTERFACE
 export default function ForgotPassword() {
@@ -20,7 +21,19 @@ export default function ForgotPassword() {
       await resetPassword(email);
       setInfo('If an account exists for this email, a reset link has been sent.');
     } catch (e) {
-      setErr(e.message || 'Password reset failed.');
+      let message = e.message || 'Password reset failed.';
+      const provider = getAuthProvider();
+      const supaConfigured = isSupabaseConfigured();
+      if (/failed to fetch/i.test(message) || /network/i.test(message)) {
+        message =
+          'We could not reach the authentication service. Please verify your Supabase configuration and network:\n' +
+          '• Ensure REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY (or REACT_APP_SUPABASE_KEY) are set\n' +
+          '• Supabase Auth → URL Configuration: "Site URL" and "Allowed Redirect URLs" include your frontend origin';
+      }
+      if (supaConfigured && provider !== 'supabase') {
+        message += '\nTip: Set REACT_APP_AUTH_PROVIDER=supabase to enable Supabase-based reset.';
+      }
+      setErr(message);
     } finally {
       setLoading(false);
     }
@@ -30,7 +43,7 @@ export default function ForgotPassword() {
     <div>
       <div className="auth-title">Reset your password</div>
       <div className="auth-subtitle">Enter your email to receive a reset link.</div>
-      {err && <div className="pill error" style={{ marginBottom: 12 }}>{err}</div>}
+      {err && <div className="pill error" style={{ whiteSpace: 'pre-line', marginBottom: 12 }}>{err}</div>}
       {info && <div className="pill success" style={{ marginBottom: 12 }}>{info}</div>}
       <form onSubmit={submit}>
         <div className="form-row">

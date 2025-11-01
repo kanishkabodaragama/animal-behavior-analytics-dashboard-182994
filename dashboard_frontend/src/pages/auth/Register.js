@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { getAuthProvider, isSupabaseConfigured } from '../../utils/env';
 
 // PUBLIC_INTERFACE
 export default function Register() {
@@ -34,7 +35,20 @@ export default function Register() {
       // Otherwise we are logged in (mock/API or Supabase with direct session)
       navigate('/', { replace: true });
     } catch (e) {
-      const message = e?.message || 'Registration failed';
+      let message = e?.message || 'Registration failed';
+      const provider = getAuthProvider();
+      const supaConfigured = isSupabaseConfigured();
+
+      if (/failed to fetch/i.test(message) || /network/i.test(message)) {
+        message =
+          'We could not reach the authentication service. Please check your internet connection, disable ad-blockers for this site, and verify Supabase settings:\n' +
+          '• Environment variables REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY (or REACT_APP_SUPABASE_KEY)\n' +
+          '• Supabase Auth → URL Configuration: set "Site URL" and include your frontend origin in "Allowed Redirect URLs".';
+      }
+      if (supaConfigured && provider !== 'supabase') {
+        message +=
+          '\nTip: Supabase appears configured. Set REACT_APP_AUTH_PROVIDER=supabase to explicitly use Supabase-based signup.';
+      }
       setErr(message);
     } finally {
       setLoading(false);
@@ -45,7 +59,7 @@ export default function Register() {
     <div>
       <div className="auth-title">Create your account</div>
       <div className="auth-subtitle">Join to start analyzing animal behaviors.</div>
-      {err && <div className="pill error" style={{ marginBottom: 12 }}>{err}</div>}
+      {err && <div className="pill error" style={{ whiteSpace: 'pre-line', marginBottom: 12 }}>{err}</div>}
       {info && <div className="pill success" style={{ marginBottom: 12 }}>{info}</div>}
       <form onSubmit={submit}>
         <div className="form-row">
@@ -67,7 +81,12 @@ export default function Register() {
         </div>
       </form>
       <div className="separator" />
-      <div className="muted">Already have an account? <Link to="/login">Sign in</Link></div>
+      <div className="muted" style={{ marginBottom: 8 }}>
+        Already have an account? <Link to="/login">Sign in</Link>
+      </div>
+      <div className="muted">
+        Having trouble? See the Supabase setup guide in README and the dashboard_frontend/assets/supabase.md.
+      </div>
     </div>
   );
 }

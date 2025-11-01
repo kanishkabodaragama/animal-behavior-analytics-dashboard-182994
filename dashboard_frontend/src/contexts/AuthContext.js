@@ -17,7 +17,7 @@ export function AuthProvider({ children }) {
   /**
    * Provides authentication state and actions.
    * Initializes from localStorage token when available.
-   * Handles Supabase session changes when provider is 'supabase'.
+   * Handles Supabase session changes when client is configured.
    */
   const [user, setUser] = useState(null);
   const [initializing, setInitializing] = useState(true);
@@ -34,33 +34,37 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    // Listen to Supabase auth state changes if selected and configured
-    const provider = getAuthProvider();
-    const isReady = provider === 'supabase' && !!supabase && isSupabaseConfigured();
+    // Listen to Supabase auth state changes when client is configured
+    const provider = getAuthProvider(); // still available for diagnostics
+    const isReady = !!supabase && isSupabaseConfigured();
     if (!isReady) return;
 
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        const token = session?.access_token;
-        const spUser = session?.user;
-        if (token && spUser) {
-          const normalizedUser = {
-            id: spUser.id,
-            name:
-              spUser.user_metadata?.name ||
-              (spUser.email ? spUser.email.split('@')[0] : 'User'),
-            email: spUser.email || storage.get('user')?.email || undefined,
-          };
-          storage.set('token', token);
-          storage.set('user', normalizedUser);
-          api.setToken(token);
-          setUser(normalizedUser);
+      try {
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          const token = session?.access_token;
+          const spUser = session?.user;
+          if (token && spUser) {
+            const normalizedUser = {
+              id: spUser.id,
+              name:
+                spUser.user_metadata?.name ||
+                (spUser.email ? spUser.email.split('@')[0] : 'User'),
+              email: spUser.email || storage.get('user')?.email || undefined,
+            };
+            storage.set('token', token);
+            storage.set('user', normalizedUser);
+            api.setToken(token);
+            setUser(normalizedUser);
+          }
+        } else if (event === 'SIGNED_OUT') {
+          storage.remove('token');
+          storage.remove('user');
+          api.setToken(null);
+          setUser(null);
         }
-      } else if (event === 'SIGNED_OUT') {
-        storage.remove('token');
-        storage.remove('user');
-        api.setToken(null);
-        setUser(null);
+      } catch (err) {
+        try { console.error('[auth] Error handling Supabase auth state change:', err); } catch {}
       }
     });
 
@@ -91,7 +95,7 @@ export function AuthProvider({ children }) {
   const register = async (name, email, password) => {
     /**
      * Registers a new user:
-     * - When provider = 'supabase' and client is configured, uses Supabase signUp with optional emailRedirectTo.
+     * - When a Supabase client is configured, uses Supabase signUp with optional emailRedirectTo.
      *   If a session is returned (email confirmation disabled), completes login.
      *   Otherwise returns an indicator that email confirmation is required.
      * - Otherwise falls back to mock/API registration and logs user in.
@@ -101,8 +105,11 @@ export function AuthProvider({ children }) {
      *   - { needsConfirmation: true } if email confirmation is required (Supabase)
      */
     const provider = getAuthProvider();
-    const useSupabase =
-      provider === 'supabase' && !!supabase && isSupabaseConfigured();
+    const useSupabase = !!supabase && isSupabaseConfigured();
+
+    if (useSupabase && provider !== 'supabase') {
+      try { console.warn('[auth] Supabase client detected; using it for register flow even though REACT_APP_AUTH_PROVIDER is not "supabase".'); } catch {}
+    }
 
     if (useSupabase) {
       const siteUrl = getEnv('REACT_APP_SITE_URL', '');
@@ -144,28 +151,42 @@ export function AuthProvider({ children }) {
     }
 
     // Fallback to existing login (mock or real API)
-    const res = await api.auth.register({ name, email, password });
-    storage.set('token', res.token);
-    storage.set('user', res.user);
-    api.setToken(res.token);
-    setUser(res.user);
-    return res.user;
+    try {
+      const res = await api.auth.register({ name, email, password });
+      storage.set('token', res.token);
+      storage.set('user', res.user);
+      api.setToken(res.token);
+      setUser(res.user);
+      return res.user;
+    } catch (e) {
+      const raw = String(e?.message || '');
+      if (/failed to fetch/i.test(raw) || /network/i.test(raw)) {
+        try { console.error('[auth] Network error during register (fallback path):', e); } catch {}
+        throw new Error(
+          'Network error while reaching the API. If you intend to use Supabase for auth, ensure REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY (or REACT_APP_SUPABASE_KEY) are set, set REACT_APP_AUTH_PROVIDER=supabase, and verify Supabase Auth "Site URL" and "Allowed Redirect URLs" include your frontend origin.'
+        );
+      }
+      throw e;
+    }
   };
 
   // PUBLIC_INTERFACE
   const resetPassword = async (email) => {
     /**
-     * Requests a password reset email when Supabase is the provider.
+     * Requests a password reset email when a Supabase client is configured.
      * Throws when provider is not Supabase (mock mode).
      */
     const provider = getAuthProvider();
-    const useSupabase =
-      provider === 'supabase' && !!supabase && isSupabaseConfigured();
+    const useSupabase = !!supabase && isSupabaseConfigured();
     if (!useSupabase) {
       throw new Error(
         'Password reset is not available in mock mode. Please switch to Supabase provider.'
       );
     }
+    if (useSupabase && provider !== 'supabase') {
+      try { console.warn('[auth] Supabase client detected; processing password reset even though REACT_APP_AUTH_PROVIDER is not "supabase".'); } catch {}
+    }
+
     const siteUrl = getEnv('REACT_APP_SITE_URL', '');
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: siteUrl || undefined,
