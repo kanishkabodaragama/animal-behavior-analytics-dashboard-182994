@@ -45,12 +45,39 @@ function App() {
   );
 }
 
+// function AuthShell({ children }) {
+//   // Minimal centered container for auth pages using theme variables
+//   return (
+//     <div className="auth-shell">
+//       <div className="auth-card">
+//         <div className="brand">Animal Behavior Analytics</div>
+//         {children}
+//       </div>
+//     </div>
+//   );
+// }
+
 function AuthShell({ children }) {
-  // Minimal centered container for auth pages using theme variables
   return (
-    <div className="auth-shell">
-      <div className="auth-card">
-        <div className="brand">Animal Behavior Analytics</div>
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        backgroundColor: '#f5f6fa',
+      }}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '380px',
+          padding: '2rem',
+          borderRadius: '12px',
+          background: '#fff',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+        }}
+      >
         {children}
       </div>
     </div>

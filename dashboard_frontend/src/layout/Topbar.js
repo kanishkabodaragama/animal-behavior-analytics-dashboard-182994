@@ -14,7 +14,7 @@ export default function Topbar() {
         <button className="btn ghost" onClick={toggleSidebar} aria-label="Toggle sidebar">☰</button>
         <div className="pill">
           <span>🐾 Animal Type</span>
-          <strong>All</strong>
+          <strong>Ant Eater</strong>
         </div>
         <div className="pill">
           <span>🕒 {format(now, 'PPpp')}</span>
