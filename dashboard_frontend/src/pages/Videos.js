@@ -346,7 +346,7 @@ export default function Videos() {
         {/* Header */}
         <div style={styles.headerSection}>
           <div style={styles.headerContent}>
-            <h1 style={styles.header}>Upload Video</h1>
+            <h1 style={styles.header}>Video Analytics</h1>
             <p style={styles.subheader}>Manage animal footage for AI-powered behavioral analysis</p>
           </div>
           {/* <button

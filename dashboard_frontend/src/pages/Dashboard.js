@@ -385,7 +385,6 @@ export default function Dashboard() {
         <div style={styles.activityCard}>
           <div style={styles.activityHeader}>
             <h2 style={styles.activityTitle}>
-              <span>🕒</span>
               <span>Latest Activity</span>
             </h2>
             <button
