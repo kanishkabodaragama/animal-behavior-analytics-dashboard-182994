@@ -8,13 +8,16 @@ const COLUMNS = [
   { key: 'label', label: 'Label', render: (r) => (r.label ?? '—') },
   { key: 'tile', label: 'Video Source', render: (r) => (r.tile ?? '—') },
   {
-    key: 'confidence',
-    label: 'Confidence',
-    render: (r) => {
-      const v = r.confidence;
-      return typeof v === 'number' ? v.toFixed(2) : (v ?? '—');
-    },
+  key: 'confidence',
+  label: 'Confidence (%)',
+  render: (r) => {
+    const v = r.confidence;
+    return typeof v === 'number'
+      ? `${(v * 100).toFixed(1)}%`
+      : (v ?? '—');
   },
+},
+
   // { key: 'pose', label: 'Pose', render: (r) => (r.pose ?? '—') }, // ❌ Pose column removed
   { key: 'behavior', label: 'Behavior', render: (r) => (r.behavior ?? '—') },
 ];
