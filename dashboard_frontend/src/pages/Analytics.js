@@ -6,7 +6,7 @@ const COLUMNS = [
   { key: 'timestamp', label: 'Timestamp', render: (r) => (r.timestamp ?? '—') },
   { key: 'animalId', label: 'Animal ID', render: (r) => (r.animalId ?? '—') },
   { key: 'label', label: 'Label', render: (r) => (r.label ?? '—') },
-  { key: 'tile', label: 'Tile', render: (r) => (r.tile ?? '—') },
+  { key: 'tile', label: 'Video Source', render: (r) => (r.tile ?? '—') },
   {
     key: 'confidence',
     label: 'Confidence',
@@ -15,7 +15,7 @@ const COLUMNS = [
       return typeof v === 'number' ? v.toFixed(2) : (v ?? '—');
     },
   },
-  { key: 'pose', label: 'Pose', render: (r) => (r.pose ?? '—') },
+  // { key: 'pose', label: 'Pose', render: (r) => (r.pose ?? '—') }, // ❌ Pose column removed
   { key: 'behavior', label: 'Behavior', render: (r) => (r.behavior ?? '—') },
 ];
 
@@ -28,14 +28,14 @@ export default function Analytics() {
   const [filters, setFilters] = useState({
     label: '',
     behavior: '',
-    pose: '',
+    // pose: '', // ❌ Pose filter removed
     tile: '',
   });
 
   const [searchTerms, setSearchTerms] = useState({
     label: '',
     behavior: '',
-    pose: '',
+    // pose: '', // ❌ Pose search removed
     tile: '',
   });
 
@@ -47,7 +47,7 @@ export default function Analytics() {
       label: item.label,
       tile: item.videoSource?.split('/').pop() || '—',
       confidence: item.confidence,
-      pose: item.pose,
+      // pose: item.pose, // ❌ Pose data ignored
       behavior: item.behaviour || item.behavior || '—',
     }));
 
@@ -76,7 +76,7 @@ export default function Analytics() {
     return {
       labels: getUnique('label'),
       behaviors: getUnique('behavior'),
-      poses: getUnique('pose'),
+      // poses: getUnique('pose'), // ❌ Pose unique list removed
       tiles: getUnique('tile'),
     };
   }, [dataset]);
@@ -86,7 +86,7 @@ export default function Analytics() {
       return (
         (!filters.label || row.label === filters.label) &&
         (!filters.behavior || row.behavior === filters.behavior) &&
-        (!filters.pose || row.pose === filters.pose) &&
+        // (!filters.pose || row.pose === filters.pose) && // ❌ Pose filter removed
         (!filters.tile || row.tile === filters.tile)
       );
     });
@@ -192,10 +192,6 @@ export default function Analytics() {
       color: '#1F2937',
       boxSizing: 'border-box',
     },
-    inputFocus: {
-      borderColor: '#008C8C',
-      boxShadow: '0 0 0 3px rgba(0, 140, 140, 0.1)',
-    },
     select: {
       width: '100%',
       padding: '10px 14px',
@@ -208,10 +204,6 @@ export default function Analytics() {
       color: '#1F2937',
       transition: 'all 0.2s ease',
       boxSizing: 'border-box',
-    },
-    selectFocus: {
-      borderColor: '#008C8C',
-      boxShadow: '0 0 0 3px rgba(0, 140, 140, 0.1)',
     },
     button: {
       backgroundColor: '#008C8C',
@@ -227,28 +219,6 @@ export default function Analytics() {
       display: 'flex',
       alignItems: 'center',
       gap: '8px',
-    },
-    buttonHover: {
-      backgroundColor: '#007070',
-      transform: 'translateY(-1px)',
-      boxShadow: '0 4px 8px rgba(0, 140, 140, 0.3)',
-    },
-    buttonDisabled: {
-      backgroundColor: '#9CA3AF',
-      cursor: 'not-allowed',
-      opacity: 0.6,
-      transform: 'none',
-      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
-    },
-    buttonSecondary: {
-      backgroundColor: '#A3E635',
-      color: '#1F2937',
-      boxShadow: '0 2px 4px rgba(163, 230, 53, 0.2)',
-    },
-    buttonSecondaryHover: {
-      backgroundColor: '#84CC16',
-      transform: 'translateY(-1px)',
-      boxShadow: '0 4px 8px rgba(163, 230, 53, 0.3)',
     },
     resultsInfo: {
       display: 'flex',
@@ -270,21 +240,6 @@ export default function Analytics() {
       color: '#1F2937',
       fontWeight: '700',
     },
-    clearButton: {
-      backgroundColor: 'transparent',
-      color: '#008C8C',
-      border: '2px solid #008C8C',
-      borderRadius: '8px',
-      padding: '6px 16px',
-      fontSize: '13px',
-      fontWeight: '600',
-      cursor: 'pointer',
-      transition: 'all 0.2s ease',
-    },
-    clearButtonHover: {
-      backgroundColor: '#008C8C',
-      color: '#FFFFFF',
-    },
     card: {
       backgroundColor: '#FFFFFF',
       borderRadius: '12px',
@@ -297,43 +252,17 @@ export default function Analytics() {
   const [hoveredButton, setHoveredButton] = useState('');
   const [focusedInput, setFocusedInput] = useState('');
 
-  const getButtonStyle = (btn, isSecondary = false, isDisabled = false) => {
-    if (isDisabled) {
-      return { ...styles.button, ...styles.buttonDisabled };
-    }
-    if (isSecondary) {
-      return hoveredButton === btn
-        ? { ...styles.button, ...styles.buttonSecondary, ...styles.buttonSecondaryHover }
-        : { ...styles.button, ...styles.buttonSecondary };
-    }
-    return hoveredButton === btn
-      ? { ...styles.button, ...styles.buttonHover }
-      : styles.button;
-  };
-
-  const getInputStyle = (key) => {
-    return focusedInput === key
-      ? { ...styles.input, ...styles.inputFocus }
-      : styles.input;
-  };
-
-  const getSelectStyle = (key) => {
-    return focusedInput === key
-      ? { ...styles.select, ...styles.selectFocus }
-      : styles.select;
-  };
-
   const clearAllFilters = () => {
     setFilters({
       label: '',
       behavior: '',
-      pose: '',
+      // pose: '', // ❌
       tile: '',
     });
     setSearchTerms({
       label: '',
       behavior: '',
-      pose: '',
+      // pose: '', // ❌
       tile: '',
     });
   };
@@ -350,19 +279,15 @@ export default function Analytics() {
       <div style={styles.filterGroup}>
         <label style={styles.filterLabel}>{label}</label>
         <input
-          style={getInputStyle(`search-${key}`)}
+          style={styles.input}
           placeholder={`Search ${label.toLowerCase()}...`}
           value={searchTerms[key]}
           onChange={(e) => setSearchTerms({ ...searchTerms, [key]: e.target.value })}
-          onFocus={() => setFocusedInput(`search-${key}`)}
-          onBlur={() => setFocusedInput('')}
         />
         <select
-          style={getSelectStyle(`select-${key}`)}
+          style={styles.select}
           value={filters[key]}
           onChange={(e) => setFilters({ ...filters, [key]: e.target.value })}
-          onFocus={() => setFocusedInput(`select-${key}`)}
-          onBlur={() => setFocusedInput('')}
         >
           <option value="">All {label}s</option>
           {filteredOptions.map((opt) => (
@@ -381,20 +306,16 @@ export default function Analytics() {
         <h2 style={styles.header}>Analytics Dashboard</h2>
         <div style={styles.headerButtons}>
           <button
-            style={getButtonStyle('refresh', false, loading)}
+            style={styles.button}
             onClick={fetchAnalytics}
-            onMouseEnter={() => setHoveredButton('refresh')}
-            onMouseLeave={() => setHoveredButton('')}
             disabled={loading}
           >
             <span>{loading ? '⟳' : '↻'}</span>
             <span>{loading ? 'Refreshing...' : 'Refresh Data'}</span>
           </button>
           <button
-            style={getButtonStyle('download', true)}
+            style={{ ...styles.button, backgroundColor: '#A3E635', color: '#1F2937' }}
             onClick={downloadCSV}
-            onMouseEnter={() => setHoveredButton('download')}
-            onMouseLeave={() => setHoveredButton('')}
           >
             <span>⬇</span>
             <span>Export CSV</span>
@@ -408,14 +329,17 @@ export default function Analytics() {
           <span>Smart Filters</span>
           {hasActiveFilters && (
             <button
-              style={
-                hoveredButton === 'clear'
-                  ? { ...styles.clearButton, ...styles.clearButtonHover }
-                  : styles.clearButton
-              }
+              style={{
+                backgroundColor: 'transparent',
+                color: '#008C8C',
+                border: '2px solid #008C8C',
+                borderRadius: '8px',
+                padding: '6px 16px',
+                fontSize: '13px',
+                fontWeight: '600',
+                cursor: 'pointer',
+              }}
               onClick={clearAllFilters}
-              onMouseEnter={() => setHoveredButton('clear')}
-              onMouseLeave={() => setHoveredButton('')}
             >
               Clear All
             </button>
@@ -424,8 +348,8 @@ export default function Analytics() {
         <div style={styles.filtersContainer}>
           {renderDropdown('Label', 'label', uniqueValues.labels)}
           {renderDropdown('Behavior', 'behavior', uniqueValues.behaviors)}
-          {renderDropdown('Pose', 'pose', uniqueValues.poses)}
-          {renderDropdown('Tile', 'tile', uniqueValues.tiles)}
+          {/* {renderDropdown('Pose', 'pose', uniqueValues.poses)} */} {/* ❌ Pose removed */}
+          {renderDropdown('Video Source', 'tile', uniqueValues.tiles)}
         </div>
       </div>
 

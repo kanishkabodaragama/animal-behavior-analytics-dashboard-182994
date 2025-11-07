@@ -38,7 +38,7 @@ export default function Dashboard() {
 
       const mapped = data.slice(0, 10).map((v) => ({
         id: v.id,
-        animal: 'Bear',
+        animal: 'Giant Ant Eater', // static for now
         behavior: v.video_name || 'Unknown Behavior',
         time: v.created_at,
         status:
