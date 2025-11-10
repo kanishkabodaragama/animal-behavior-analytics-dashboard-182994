@@ -25,7 +25,7 @@ export default function Analytics() {
   const [dataset, setDataset] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
 
-  // server-side pagination state
+  // Pagination state
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -41,42 +41,49 @@ export default function Analytics() {
     tile: '',
   });
 
+  // Transform API data into table-friendly objects
   const transformData = (apiData) =>
-    apiData.map((item) => ({
-      frameTime: item.frameTimeSeconds,
-      timestamp: item.timestampFromCamera,
-      animalId: item.id,
-      label: item.label,
-      tile: item.videoSource?.split('/').pop() || '—',
-      confidence: item.confidence,
-      behavior: (item.behaviour || item.behavior || '').trim() || '—',
-    }));
+  apiData.map((item) => ({
+    frameTime: item.frameTimeSeconds,
+    timestamp: item.timestampFromCamera,
+    animalId: item.animalId ?? '—',
+    label: item.label,
+    tile: item.videoSource?.split('/').pop() || '—',
+    confidence: item.confidence,
+    behavior: (item.behaviour || item.behavior || '').trim() || '—',
+  }));
 
+  // Fetch analytics with pagination
   const fetchAnalytics = async (pageNum = 1, size = pageSize) => {
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/animals?page=${pageNum}&pageSize=${size}`
-      );
-      if (!response.ok) throw new Error(`API error: ${response.status}`);
-      const data = await response.json();
+  setLoading(true);
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/animals?page=${pageNum}&pageSize=${size}`
+    );
+    if (!response.ok) throw new Error(`API error: ${response.status}`);
 
-      // backend should return { records: [...], totalCount: N }
-      const records = data.records || data; // fallback to array
-      setDataset(transformData(records));
-      setTotalCount(data.totalCount || records.length);
-    } catch (err) {
-      console.error('❌ Failed to fetch analytics:', err);
-      setDataset([]);
-      setTotalCount(0);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const data = await response.json();
+
+    // Transform records
+    const records = data.results || [];
+    const transformed = transformData(records);
+
+    setDataset(transformed);
+
+    // ✅ Use totalCount from backend for pagination
+    setTotalCount(data.totalCount ?? records.length);
+  } catch (err) {
+    console.error('❌ Failed to fetch analytics:', err);
+    setDataset([]);
+    setTotalCount(0);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchAnalytics(page, pageSize);
-  }, [page, pageSize]);
+  }, []);
 
   const handlePageChange = (newPage, newPageSize) => {
     setPage(newPage);
@@ -84,6 +91,7 @@ export default function Analytics() {
     fetchAnalytics(newPage, newPageSize);
   };
 
+  // Compute unique filter values from dataset
   const uniqueValues = useMemo(() => {
     const getUnique = (key) =>
       Array.from(new Set(dataset.map((row) => row[key]).filter(Boolean))).sort();
@@ -94,6 +102,7 @@ export default function Analytics() {
     };
   }, [dataset]);
 
+  // Filter logic
   const filteredData = useMemo(() => {
     return dataset.filter((row) => {
       return (
@@ -104,6 +113,7 @@ export default function Analytics() {
     });
   }, [dataset, filters]);
 
+  // CSV Export function
   const downloadCSV = () => {
     if (!filteredData.length) {
       alert('No data to download!');
@@ -129,8 +139,13 @@ export default function Analytics() {
     URL.revokeObjectURL(url);
   };
 
+  // Inline styles
   const styles = {
-    container: { backgroundColor: '#F9FAFB', minHeight: '100vh', padding: '32px' },
+    container: {
+      backgroundColor: '#F9FAFB',
+      minHeight: '100vh',
+      padding: '32px',
+    },
     headerSection: {
       display: 'flex',
       justifyContent: 'space-between',
@@ -139,8 +154,17 @@ export default function Analytics() {
       paddingBottom: '20px',
       borderBottom: '3px solid #008C8C',
     },
-    header: { margin: 0, color: '#1F2937', fontSize: '32px', fontWeight: '700', letterSpacing: '-0.5px' },
-    headerButtons: { display: 'flex', gap: '12px' },
+    header: {
+      margin: 0,
+      color: '#1F2937',
+      fontSize: '32px',
+      fontWeight: '700',
+      letterSpacing: '-0.5px',
+    },
+    headerButtons: {
+      display: 'flex',
+      gap: '12px',
+    },
     filtersCard: {
       backgroundColor: '#FFFFFF',
       borderRadius: '12px',
@@ -158,10 +182,27 @@ export default function Analytics() {
       fontSize: '16px',
       fontWeight: '600',
     },
-    filtersIcon: { fontSize: '20px' },
-    filtersContainer: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' },
-    filterGroup: { display: 'flex', flexDirection: 'column', gap: '8px' },
-    filterLabel: { fontSize: '13px', fontWeight: '600', color: '#1F2937', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' },
+    filtersIcon: {
+      fontSize: '20px',
+    },
+    filtersContainer: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+      gap: '16px',
+    },
+    filterGroup: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '8px',
+    },
+    filterLabel: {
+      fontSize: '13px',
+      fontWeight: '600',
+      color: '#1F2937',
+      textTransform: 'uppercase',
+      letterSpacing: '0.5px',
+      marginBottom: '4px',
+    },
     input: {
       width: '100%',
       padding: '10px 14px',
@@ -212,8 +253,16 @@ export default function Analytics() {
       borderRadius: '8px',
       border: '1px solid #E5E7EB',
     },
-    resultsText: { fontSize: '14px', color: '#6B7280', fontWeight: '500' },
-    resultsCount: { fontSize: '14px', color: '#1F2937', fontWeight: '700' },
+    resultsText: {
+      fontSize: '14px',
+      color: '#6B7280',
+      fontWeight: '500',
+    },
+    resultsCount: {
+      fontSize: '14px',
+      color: '#1F2937',
+      fontWeight: '700',
+    },
     card: {
       backgroundColor: '#FFFFFF',
       borderRadius: '12px',
@@ -223,6 +272,7 @@ export default function Analytics() {
     },
   };
 
+  // Filter actions
   const clearAllFilters = () => {
     setFilters({ label: '', behavior: '', tile: '' });
     setSearchTerms({ label: '', behavior: '', tile: '' });
@@ -250,7 +300,9 @@ export default function Analytics() {
         >
           <option value="">All {label}s</option>
           {filteredOptions.map((opt) => (
-            <option key={opt} value={opt}>{opt}</option>
+            <option key={opt} value={opt}>
+              {opt}
+            </option>
           ))}
         </select>
       </div>
@@ -262,11 +314,22 @@ export default function Analytics() {
       <div style={styles.headerSection}>
         <h2 style={styles.header}>Analytics Dashboard</h2>
         <div style={styles.headerButtons}>
-          <button style={styles.button} onClick={() => fetchAnalytics(page, pageSize)} disabled={loading}>
+          <button
+            style={styles.button}
+            onClick={() => fetchAnalytics(page, pageSize)}
+            disabled={loading}
+          >
             <span>{loading ? '⟳' : '↻'}</span>
             <span>{loading ? 'Refreshing...' : 'Refresh Data'}</span>
           </button>
-          <button style={{ ...styles.button, backgroundColor: '#A3E635', color: '#1F2937' }} onClick={downloadCSV}>
+          <button
+            style={{
+              ...styles.button,
+              backgroundColor: '#A3E635',
+              color: '#1F2937',
+            }}
+            onClick={downloadCSV}
+          >
             <span>⬇</span>
             <span>Export CSV</span>
           </button>
@@ -295,6 +358,7 @@ export default function Analytics() {
             </button>
           )}
         </div>
+
         <div style={styles.filtersContainer}>
           {renderDropdown('Label', 'label', uniqueValues.labels)}
           {renderDropdown('Behavior', 'behavior', uniqueValues.behaviors)}
@@ -305,11 +369,18 @@ export default function Analytics() {
       {dataset.length > 0 && (
         <div style={styles.resultsInfo}>
           <span style={styles.resultsText}>
-            Showing <span style={styles.resultsCount}>{filteredData.length}</span> of{' '}
+            Showing{' '}
+            <span style={styles.resultsCount}>{filteredData.length}</span> of{' '}
             <span style={styles.resultsCount}>{totalCount}</span> records
           </span>
           {hasActiveFilters && (
-            <span style={{ ...styles.resultsText, color: '#008C8C', fontWeight: '600' }}>
+            <span
+              style={{
+                ...styles.resultsText,
+                color: '#008C8C',
+                fontWeight: '600',
+              }}
+            >
               {Object.values(filters).filter((f) => f).length} filter(s) active
             </span>
           )}

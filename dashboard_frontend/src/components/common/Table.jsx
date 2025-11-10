@@ -305,11 +305,17 @@ export default function Table({
       <div style={styles.pager} aria-label="Table pagination">
         <div style={styles.pagerLeft}>
           <div style={styles.infoText}>
-            {computedTotal === 0 ? (
-              'No records'
+            {serverSide ? (
+              <>
+                Showing <strong>{(page - 1) * pageSize + 1}</strong>
+                {' – '}
+                <strong>{(page - 1) * pageSize + rowsToRender.length}</strong>
+                {' of '}
+                <strong>{computedTotal}</strong>
+              </>
             ) : (
               <>
-                Showing <strong>{computedTotal === 0 ? 0 : startIdx + 1}</strong>
+                Showing <strong>{startIdx + 1}</strong>
                 {' – '}
                 <strong>{endIdx}</strong>
                 {' of '}
