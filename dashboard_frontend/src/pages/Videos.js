@@ -457,7 +457,7 @@ export default function Videos() {
                           <div>
                             <span style={{ ...styles.statusBadge, background: detectionStatus.background, color: detectionStatus.color }}>{detectionStatus.label}</span>
                             <div style={{ marginTop: 8, color: '#6B7280', fontSize: 13 }}>
-                              <strong>{v.detectionCount ?? 0}</strong> detections
+                              {/* <strong>{v.detectionCount ?? 0}</strong> detections */}
                               {v.behaviours && v.behaviours.length > 0 && (
                                 <div style={{ marginTop: 6 }}>
                                   {v.behaviours.slice(0, 3).map((b, i) => (

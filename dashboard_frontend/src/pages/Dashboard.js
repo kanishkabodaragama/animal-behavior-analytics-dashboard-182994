@@ -405,7 +405,7 @@ export default function Dashboard() {
             <table style={styles.table}>
               <thead style={styles.thead}>
                 <tr>
-                  {['Animal', 'Behavior', 'Time', 'Status'].map((header) => (
+                  {['Animal', 'Source', 'Time', 'Status'].map((header) => (
                     <th key={header} style={styles.th}>
                       {header}
                     </th>

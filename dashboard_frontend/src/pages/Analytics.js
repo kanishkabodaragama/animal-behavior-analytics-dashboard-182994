@@ -22,6 +22,8 @@ const API_BASE_URL = 'https://sbh3fg3j-5050.asse.devtunnels.ms/api';
 
 export default function Analytics() {
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [toast, setToast] = useState(null);
   const [dataset, setDataset] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
 
@@ -29,6 +31,7 @@ export default function Analytics() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
+  // Filter state
   const [filters, setFilters] = useState({
     label: '',
     behavior: '',
@@ -41,66 +44,76 @@ export default function Analytics() {
     tile: '',
   });
 
+  // ✅ Store backend filter values
+  const [uniqueValues, setUniqueValues] = useState({
+    labels: [],
+    behaviors: [],
+    tiles: [],
+  });
+
   // Transform API data into table-friendly objects
   const transformData = (apiData) =>
-  apiData.map((item) => ({
-    frameTime: item.frameTimeSeconds,
-    timestamp: item.timestampFromCamera,
-    animalId: item.animalId ?? '—',
-    label: item.label,
-    tile: item.videoSource?.split('/').pop() || '—',
-    confidence: item.confidence,
-    behavior: (item.behaviour || item.behavior || '').trim() || '—',
-  }));
+    apiData.map((item) => ({
+      frameTime: item.frameTimeSeconds,
+      timestamp: item.timestampFromCamera,
+      animalId: item.animalId ?? '—',
+      label: item.label,
+      tile: item.videoSource?.split('/').pop() || '—',
+      confidence: item.confidence,
+      behavior: (item.behaviour || item.behavior || '').trim() || '—',
+    }));
 
   // Fetch analytics with pagination
   const fetchAnalytics = async (pageNum = 1, size = pageSize) => {
-  setLoading(true);
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/animals?page=${pageNum}&pageSize=${size}`
-    );
-    if (!response.ok) throw new Error(`API error: ${response.status}`);
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/animals?page=${pageNum}&pageSize=${size}`);
+      if (!response.ok) throw new Error(`API error: ${response.status}`);
 
-    const data = await response.json();
+      const data = await response.json();
+      const records = data.results || [];
+      const transformed = transformData(records);
 
-    // Transform records
-    const records = data.results || [];
-    const transformed = transformData(records);
+      setDataset(transformed);
+      setTotalCount(data.totalCount ?? records.length);
+    } catch (err) {
+      console.error('❌ Failed to fetch analytics:', err);
+      setDataset([]);
+      setTotalCount(0);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    setDataset(transformed);
-
-    // ✅ Use totalCount from backend for pagination
-    setTotalCount(data.totalCount ?? records.length);
-  } catch (err) {
-    console.error('❌ Failed to fetch analytics:', err);
-    setDataset([]);
-    setTotalCount(0);
-  } finally {
-    setLoading(false);
-  }
-};
-
+  // Fetch data when component mounts or pagination changes
   useEffect(() => {
     fetchAnalytics(page, pageSize);
+  }, [page, pageSize]);
+
+  // Fetch backend filter options
+  useEffect(() => {
+    const fetchFilters = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/animals/filters`);
+        if (!response.ok) throw new Error('Failed to fetch filter options');
+        const data = await response.json();
+        setUniqueValues({
+          labels: data.labels || [],
+          behaviors: data.behaviors || [],
+          tiles: data.tiles?.map((t) => t.split('/').pop()) || [],
+        });
+      } catch (err) {
+        console.error('❌ Failed to load filters:', err);
+      }
+    };
+
+    fetchFilters();
   }, []);
 
   const handlePageChange = (newPage, newPageSize) => {
     setPage(newPage);
     setPageSize(newPageSize);
-    fetchAnalytics(newPage, newPageSize);
   };
-
-  // Compute unique filter values from dataset
-  const uniqueValues = useMemo(() => {
-    const getUnique = (key) =>
-      Array.from(new Set(dataset.map((row) => row[key]).filter(Boolean))).sort();
-    return {
-      labels: getUnique('label'),
-      behaviors: getUnique('behavior'),
-      tiles: getUnique('tile'),
-    };
-  }, [dataset]);
 
   // Filter logic
   const filteredData = useMemo(() => {
@@ -113,30 +126,43 @@ export default function Analytics() {
     });
   }, [dataset, filters]);
 
-  // CSV Export function
-  const downloadCSV = () => {
-    if (!filteredData.length) {
-      alert('No data to download!');
-      return;
+  // ✅ CSV Export with Toast + Button Feedback
+  const handleExportCSV = async () => {
+    setExporting(true);
+    showToast('⏳ CSV file is downloading...');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/animals/export`);
+
+      if (!response.ok) throw new Error('Failed to export CSV');
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `animal_detections_export_${new Date()
+        .toISOString()
+        .split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(url);
+
+      showToast('✅ CSV downloaded successfully!');
+    } catch (error) {
+      console.error('❌ CSV export failed:', error);
+      showToast('❌ CSV export failed. Please try again.');
+    } finally {
+      setExporting(false);
     }
+  };
 
-    const headers = COLUMNS.map((col) => col.label);
-    const rows = filteredData.map((row) =>
-      COLUMNS.map((col) => {
-        const value = row[col.key];
-        return typeof value === 'string' ? `"${value.replace(/"/g, '""')}"` : value ?? '';
-      }).join(',')
-    );
-
-    const csvContent = [headers.join(','), ...rows].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `analytics_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  // ✅ Toast Utility
+  const showToast = (message) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
   };
 
   // Inline styles
@@ -145,6 +171,7 @@ export default function Analytics() {
       backgroundColor: '#F9FAFB',
       minHeight: '100vh',
       padding: '32px',
+      position: 'relative',
     },
     headerSection: {
       display: 'flex',
@@ -243,6 +270,22 @@ export default function Analytics() {
       alignItems: 'center',
       gap: '8px',
     },
+    exportButton: {
+      backgroundColor: exporting ? '#86EFAC' : '#A3E635',
+      color: '#1F2937',
+      border: 'none',
+      borderRadius: '8px',
+      padding: '11px 24px',
+      fontSize: '14px',
+      fontWeight: '600',
+      cursor: exporting ? 'not-allowed' : 'pointer',
+      transition: 'all 0.2s ease',
+      boxShadow: '0 2px 4px rgba(163,230,53,0.3)',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      opacity: exporting ? 0.7 : 1,
+    },
     resultsInfo: {
       display: 'flex',
       justifyContent: 'space-between',
@@ -270,9 +313,21 @@ export default function Analytics() {
       boxShadow: '0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06)',
       border: '1px solid #E5E7EB',
     },
+    toast: {
+      position: 'fixed',
+      bottom: '20px',
+      right: '20px',
+      backgroundColor: '#008C8C',
+      color: '#FFFFFF',
+      padding: '12px 20px',
+      borderRadius: '8px',
+      boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+      fontSize: '14px',
+      fontWeight: '500',
+      animation: 'fadein 0.5s, fadeout 0.5s 2.5s',
+    },
   };
 
-  // Filter actions
   const clearAllFilters = () => {
     setFilters({ label: '', behavior: '', tile: '' });
     setSearchTerms({ label: '', behavior: '', tile: '' });
@@ -311,6 +366,8 @@ export default function Analytics() {
 
   return (
     <div style={styles.container}>
+      {toast && <div style={styles.toast}>{toast}</div>}
+
       <div style={styles.headerSection}>
         <h2 style={styles.header}>Analytics Dashboard</h2>
         <div style={styles.headerButtons}>
@@ -322,16 +379,14 @@ export default function Analytics() {
             <span>{loading ? '⟳' : '↻'}</span>
             <span>{loading ? 'Refreshing...' : 'Refresh Data'}</span>
           </button>
+
           <button
-            style={{
-              ...styles.button,
-              backgroundColor: '#A3E635',
-              color: '#1F2937',
-            }}
-            onClick={downloadCSV}
+            style={styles.exportButton}
+            onClick={handleExportCSV}
+            disabled={exporting}
           >
-            <span>⬇</span>
-            <span>Export CSV</span>
+            <span>{exporting ? '⏳' : '⬇'}</span>
+            <span>{exporting ? 'Exporting...' : 'Export CSV'}</span>
           </button>
         </div>
       </div>
@@ -369,8 +424,7 @@ export default function Analytics() {
       {dataset.length > 0 && (
         <div style={styles.resultsInfo}>
           <span style={styles.resultsText}>
-            Showing{' '}
-            <span style={styles.resultsCount}>{filteredData.length}</span> of{' '}
+            Showing <span style={styles.resultsCount}>{filteredData.length}</span> of{' '}
             <span style={styles.resultsCount}>{totalCount}</span> records
           </span>
           {hasActiveFilters && (
