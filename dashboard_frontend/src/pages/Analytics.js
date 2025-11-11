@@ -65,30 +65,40 @@ export default function Analytics() {
 
   // Fetch analytics with pagination
   const fetchAnalytics = async (pageNum = 1, size = pageSize) => {
-    setLoading(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/animals?page=${pageNum}&pageSize=${size}`);
-      if (!response.ok) throw new Error(`API error: ${response.status}`);
+  setLoading(true);
+  try {
+    const params = new URLSearchParams({
+      page: pageNum,
+      pageSize: size,
+    });
 
-      const data = await response.json();
-      const records = data.results || [];
-      const transformed = transformData(records);
+    if (filters.label) params.append("label", filters.label);
+    if (filters.behavior) params.append("behaviour", filters.behavior); // ✅ backend uses "behaviour"
+    if (filters.tile) params.append("tile", filters.tile);
 
-      setDataset(transformed);
-      setTotalCount(data.totalCount ?? records.length);
-    } catch (err) {
-      console.error('❌ Failed to fetch analytics:', err);
-      setDataset([]);
-      setTotalCount(0);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const response = await fetch(`${API_BASE_URL}/animals?${params.toString()}`);
+    if (!response.ok) throw new Error(`API error: ${response.status}`);
+
+    const data = await response.json();
+    const records = data.results || [];
+    const transformed = transformData(records);
+
+    setDataset(transformed);
+    setTotalCount(data.totalCount ?? records.length);
+  } catch (err) {
+    console.error("❌ Failed to fetch analytics:", err);
+    setDataset([]);
+    setTotalCount(0);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // Fetch data when component mounts or pagination changes
   useEffect(() => {
     fetchAnalytics(page, pageSize);
-  }, [page, pageSize]);
+  }, [page, pageSize, filters]);
 
   // Fetch backend filter options
   useEffect(() => {
@@ -114,17 +124,7 @@ export default function Analytics() {
     setPage(newPage);
     setPageSize(newPageSize);
   };
-
-  // Filter logic
-  const filteredData = useMemo(() => {
-    return dataset.filter((row) => {
-      return (
-        (!filters.label || row.label === filters.label) &&
-        (!filters.behavior || row.behavior === filters.behavior) &&
-        (!filters.tile || row.tile === filters.tile)
-      );
-    });
-  }, [dataset, filters]);
+  const filteredData = dataset;
 
   // ✅ CSV Export with Toast + Button Feedback
   const handleExportCSV = async () => {
