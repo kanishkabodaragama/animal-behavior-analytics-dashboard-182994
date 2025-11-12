@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { api } from '../services/api';
 
-// PUBLIC_INTERFACE
 export default function Videos() {
   /** Manage uploaded videos and their processing status. */
   const [items, setItems] = useState([]);
@@ -18,12 +17,12 @@ export default function Videos() {
   // polling interval id ref
   const pollRef = useRef(null);
 
-  // --- load uses the new /api/videos enriched endpoint ---
+  // --- load uses the new /videos enriched endpoint ---
   const load = async () => {
     setLoading(true);
     setErr('');
     try {
-      const data = await api.videos.list(); // expects /api/videos
+      const data = await api.videos.list(); // expects /videos
       // Map server response into UI-friendly shape
       const mapped = (Array.isArray(data) ? data : []).map((r) => ({
         id: r.id,

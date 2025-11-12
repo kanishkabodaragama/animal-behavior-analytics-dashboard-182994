@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Table from '../components/common/Table';
+import { API_BASE_URL } from '../services/api';
 
 const COLUMNS = [
   { key: 'frameTime', label: 'Frame Time (s)', render: (r) => (r.frameTime ?? '—') },
@@ -17,8 +18,6 @@ const COLUMNS = [
   },
   { key: 'behavior', label: 'Behavior', render: (r) => (r.behavior ?? '—') },
 ];
-
-const API_BASE_URL = 'https://sbh3fg3j-5050.asse.devtunnels.ms/api';
 
 // ✅ Extracted sub-component (safe to use hooks here)
 const FilterDropdown = ({

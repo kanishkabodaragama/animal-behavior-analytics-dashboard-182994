@@ -2,7 +2,7 @@ import { mockApi } from './mock';
 import { isTrue } from '../utils/env';
 
 const DEFAULT_BASE =
-  process.env.REACT_APP_API_BASE || process.env.REACT_APP_API_BASE_URL || 'https://sbh3fg3j-5050.asse.devtunnels.ms';
+  process.env.REACT_APP_API_BASE || process.env.REACT_APP_API_BASE_URL || 'https://sbh3fg3j-5050.asse.devtunnels.ms/api';
 let authToken = null;
 
 function headers(json = true) {
@@ -72,12 +72,12 @@ export const api = {
   },
 
   videos: {
-    /** List videos with statuses (expects backend /api/videos) */
+    /** List videos with statuses (expects backend /videos) */
     async list() {
       if (isTrue(process.env.REACT_APP_USE_MOCK)) {
         return mockApi.videos.list();
       }
-      const res = await fetch(`${DEFAULT_BASE}/api/videos`, { headers: headers(true) });
+      const res = await fetch(`${DEFAULT_BASE}/videos`, { headers: headers(true) });
       if (!res.ok) {
         const errText = await res.text().catch(() => 'Failed to load videos');
         throw new Error(errText || 'Failed to load videos');
@@ -94,7 +94,7 @@ export const api = {
       form.append('file', file);
 
       // For multipart we must NOT set Content-Type (browser will set boundary)
-      const res = await fetch(`${DEFAULT_BASE}/api/videos/upload`, {
+      const res = await fetch(`${DEFAULT_BASE}/videos/upload`, {
         method: 'POST',
         headers: authToken ? { Authorization: `Bearer ${authToken}` } : undefined,
         body: form,
@@ -111,7 +111,7 @@ export const api = {
       if (isTrue(process.env.REACT_APP_USE_MOCK)) {
         return mockApi.videos.get(id);
       }
-      const res = await fetch(`${DEFAULT_BASE}/api/videos/${encodeURIComponent(id)}`, {
+      const res = await fetch(`${DEFAULT_BASE}/videos/${encodeURIComponent(id)}`, {
         headers: headers(true),
       });
       if (!res.ok) {
@@ -126,7 +126,7 @@ export const api = {
       if (isTrue(process.env.REACT_APP_USE_MOCK)) {
         return mockApi.videos.getSheet(id);
       }
-      const res = await fetch(`${DEFAULT_BASE}/api/videos/${encodeURIComponent(id)}/sheet`, {
+      const res = await fetch(`${DEFAULT_BASE}/videos/${encodeURIComponent(id)}/sheet`, {
         headers: headers(true),
       });
       if (!res.ok) {
@@ -144,7 +144,7 @@ export const api = {
       if (isTrue(process.env.REACT_APP_USE_MOCK)) {
         return mockApi.videos.download(id);
       }
-      const res = await fetch(`${DEFAULT_BASE}/api/videos/${encodeURIComponent(id)}/download`, {
+      const res = await fetch(`${DEFAULT_BASE}/videos/${encodeURIComponent(id)}/download`, {
         headers: authToken ? { Authorization: `Bearer ${authToken}` } : undefined,
       });
       if (!res.ok) {
@@ -160,7 +160,7 @@ export const api = {
       if (isTrue(process.env.REACT_APP_USE_MOCK)) {
         return mockApi.videos.delete(id);
       }
-      const res = await fetch(`${DEFAULT_BASE}/api/videos/${encodeURIComponent(id)}`, {
+      const res = await fetch(`${DEFAULT_BASE}/videos/${encodeURIComponent(id)}`, {
         method: 'DELETE',
         headers: headers(true),
       });
@@ -190,3 +190,5 @@ export const api = {
 };
 
 export default api;
+export const API_BASE_URL = DEFAULT_BASE;
+

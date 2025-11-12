@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-
-const API_BASE_URL = 'https://sbh3fg3j-5050.asse.devtunnels.ms/api';
+import { API_BASE_URL } from '../services/api';
 
 export default function Dashboard() {
   /** Displays summary KPIs and latest activity entries. */
