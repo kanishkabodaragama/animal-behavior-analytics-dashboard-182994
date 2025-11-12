@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
@@ -6,7 +6,15 @@ import { useUI } from '../contexts/UIContext';
 export default function Topbar() {
   const { user, logout } = useAuth();
   const { toggleTheme, toggleSidebar } = useUI();
-  const now = new Date();
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNow(new Date());
+    }, 1000);
+
+    return () => clearInterval(interval); 
+  }, []);
 
   return (
     <header className="topbar">
