@@ -30,7 +30,7 @@ export default function Topbar() {
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <span className="muted">Signed in as {user?.name}</span>
-        <button className="btn ghost" onClick={toggleTheme}>Toggle Theme</button>
+        {/* <button className="btn ghost" onClick={toggleTheme}>Toggle Theme</button> */}
         <button className="btn" onClick={logout}>Logout</button>
       </div>
     </header>
